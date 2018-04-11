@@ -62,7 +62,8 @@ An example usage might be:
 ```javascript
 panel = new MixpanelExport({
   api_key: "my_api_key",
-  api_secret: "my_api_secret"
+  api_secret: "my_api_secret",
+  debug: true // Optional - will print request response. Default: null
 });
 
 panel.retention({

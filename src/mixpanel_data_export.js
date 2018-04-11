@@ -17,6 +17,7 @@ var MixpanelExport = (function() {
     }
     this.api_key = this.opts.api_key;
     this.api_secret = this.opts.api_secret;
+    this.debug = this.opts.debug;
     this.timeout_after = this.opts.timeout_after || 60;
     this.isNode = (typeof window !== 'object');
     this._requestNumber = 0;
@@ -111,8 +112,15 @@ var MixpanelExport = (function() {
     var getMethod = ((this.isNode) ? 'node' : 'jsonp');
 
     this['_'+ getMethod + 'Get'](method, parameters, function(data) {
+      if (this.debug) {
+        console.log('fetched data');
+        console.log(data);
+      }
       if (callback) {
         return callback(data);
+      }
+      if (data.error) {
+        return deferred.reject(data);
       }
       deferred.resolve(data);
     });
@@ -143,6 +151,12 @@ var MixpanelExport = (function() {
     request.open("get", this._buildRequestURL(method, parameters), true);
     request.setRequestHeader('Authorization', 'Basic ' + this._base64Encode(this.api_secret + ':'));
     request.onload = function() {
+      if (self.debug) {
+        console.log('_nodeGet this.responseText', this.responseText);
+      }
+      if (this.status >= 400) {
+        return callback({ error: this.responseText });
+      }
       callback(self._parseResponse(method, parameters, this.responseText));
     };
     request.send();
@@ -161,7 +175,9 @@ var MixpanelExport = (function() {
     if (typeof result === "object") {
       return result;
     }
-
+    if (typeof result === 'string' && result.trim() == 'to_date cannot be later than today') {
+      return result;
+    }
     if (method === "export") {
       var step1 = result.replace(new RegExp('\n', 'g'), ',');
       var step2 = '['+step1+']';
