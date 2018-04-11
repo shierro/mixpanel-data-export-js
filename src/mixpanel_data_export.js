@@ -147,8 +147,11 @@ var MixpanelExport = (function() {
   MixpanelExport.prototype._nodeGet = function(method, parameters, callback) {
     var request = this._xmlHttpRequest();
     var self = this;
-
-    request.open("get", this._buildRequestURL(method, parameters), true);
+    var url = this._buildRequestURL(method, parameters);
+    if (self.debug) {
+      console.log('request URL', url);
+    }
+    request.open("get", url, true);
     request.setRequestHeader('Authorization', 'Basic ' + this._base64Encode(this.api_secret + ':'));
     request.onload = function() {
       if (self.debug) {
